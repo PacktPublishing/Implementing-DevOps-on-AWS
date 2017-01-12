@@ -1,0 +1,348 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Description" : "Provisions EC2, ELB, ASG and RDS resources",
+  "Parameters" : {
+    "vpcCidr" : {
+      "Description" : "VPC CIDR",
+      "Type" : "String"
+    },
+    "vpcName" : {
+      "Description" : "VPC name",
+      "Type" : "String"
+    },
+    "awsAvailabilityZones" : {
+      "Description" : "List of AZs",
+      "Type" : "CommaDelimitedList"
+    },
+    "publicCidr" : {
+      "Description" : "List of public subnet CIDRs",
+      "Type" : "CommaDelimitedList"
+    },
+    "privateCidr" : {
+      "Description" : "List of private subnet CIDRs",
+      "Type" : "CommaDelimitedList"
+    },
+    "rdsIdentifier" : {
+      "Description" : "RDS instance identifier",
+      "Type" : "String"
+    },
+    "rdsStorageSize" : {
+      "Description" : "Storage size in GB",
+      "Type" : "Number",
+      "MinValue" : "5"
+    },
+    "rdsStorageType" : {
+      "Description" : "Storage type: standard/gp2",
+      "Type" : "String",
+      "AllowedValues" : ["standard", "gp2"]
+    },
+    "rdsEngine" : {
+      "Description" : "RDS type",
+      "Type" : "String",
+      "AllowedValues" : ["postgres", "mysql"]
+    },
+    "rdsEngineVersion" : {
+      "Description" : "RDS engine version",
+      "Type" : "String"
+    },
+    "rdsInstanceClass" : {
+      "Description" : "RDS instance class",
+      "Type" : "String",
+      "AllowedValues" : ["db.t2.micro", "db.t2.small", "db.t2.medium"]
+    },
+    "rdsUsername" : {
+      "Description" : "RDS username",
+      "Type" : "String"
+    },
+    "rdsPassword" : {
+      "Description" : "RDS password",
+      "Type" : "String",
+      "NoEcho" : "true"
+    },
+    "rdsPort" : {
+      "Description" : "RDS port number",
+      "Type" : "Number"
+    },
+    "autoscalingGroupMinsize" : {
+      "Description" : "Min size of the ASG",
+      "Type" : "Number"
+    },
+    "autoscalingGroupMaxsize" : {
+      "Description" : "Max size of the ASG",
+      "Type" : "Number"
+    },
+    "autoscalingGroupInstanceType" : {
+      "Description" : "EC2 instance type",
+      "Type" : "String",
+      "AllowedValues" : ["t2.nano", "t2.micro", "t2.small"]
+    },
+    "autoscalingGroupKeyname" : {
+      "Description" : "EC2 ssh key name",
+      "Type" : "AWS::EC2::KeyPair::KeyName"
+    },
+    "autoscalingGroupImageId" : {
+      "Description" : "EC2 AMI ID",
+      "Type" : "AWS::EC2::Image::Id"
+    }
+  },
+  "Resources" : {
+    "vpc" : {
+      "Type" : "AWS::EC2::VPC",
+      "Properties" : {
+        "CidrBlock" : { "Ref" : "vpcCidr" },
+        "EnableDnsSupport" : "true",
+        "EnableDnsHostnames" : "true",
+        "Tags" : [ { "Key" : "Name", "Value" : { "Ref" : "vpcName" } } ]
+      }
+    },
+    "publicSubnet1" : {
+      "Type" : "AWS::EC2::Subnet",
+      "Properties" : {
+        "AvailabilityZone" : { "Fn::Select" : [ "0", {"Ref" : "awsAvailabilityZones"} ] },
+        "CidrBlock" : { "Fn::Select" : [ "0", {"Ref" : "publicCidr"} ] },
+        "MapPublicIpOnLaunch" : "true",
+        "Tags" : [ { "Key" : "Name", "Value" : "Public" } ],
+        "VpcId" : { "Ref" : "vpc" }
+      }
+    },
+    "publicSubnet2" : {
+      "Type" : "AWS::EC2::Subnet",
+      "Properties" : {
+        "AvailabilityZone" : { "Fn::Select" : [ "1", {"Ref" : "awsAvailabilityZones"} ] },
+        "CidrBlock" : { "Fn::Select" : [ "1", {"Ref" : "publicCidr"} ] },
+        "MapPublicIpOnLaunch" : "true",
+        "Tags" : [ { "Key" : "Name", "Value" : "Public" } ],
+        "VpcId" : { "Ref" : "vpc" }
+      }
+    },
+    "privateSubnet1" : {
+      "Type" : "AWS::EC2::Subnet",
+      "Properties" : {
+        "AvailabilityZone" : { "Fn::Select" : [ "0", {"Ref" : "awsAvailabilityZones"} ] },
+        "CidrBlock" : { "Fn::Select" : [ "0", {"Ref" : "privateCidr"} ] },
+        "MapPublicIpOnLaunch" : "false",
+        "Tags" : [ { "Key" : "Name", "Value" : "Private" } ],
+        "VpcId" : { "Ref" : "vpc" }
+      }
+    },
+    "privateSubnet2" : {
+      "Type" : "AWS::EC2::Subnet",
+      "Properties" : {
+        "AvailabilityZone" : { "Fn::Select" : [ "1", {"Ref" : "awsAvailabilityZones"} ] },
+        "CidrBlock" : { "Fn::Select" : [ "1", {"Ref" : "privateCidr"} ] },
+        "MapPublicIpOnLaunch" : "false",
+        "Tags" : [ { "Key" : "Name", "Value" : "Private" } ],
+        "VpcId" : { "Ref" : "vpc" }
+      }
+    },
+    "internetGateway" : {
+      "Type" : "AWS::EC2::InternetGateway",
+      "Properties" : {
+        "Tags" : [ { "Key" : "Name", "Value" : { "Fn::Join" : [ " - ", [ { "Ref" : "vpcName" }, "IGW" ] ] } } ]
+      }
+    },
+    "internetGatewayAttachment" : {
+      "Type" : "AWS::EC2::VPCGatewayAttachment",
+      "Properties" : {
+        "InternetGatewayId" : { "Ref" : "internetGateway" },
+        "VpcId" : { "Ref" : "vpc" }
+      }
+    },
+    "natEip" : {
+      "Type" : "AWS::EC2::EIP",
+      "Properties" : {
+        "Domain" : "vpc"
+       }
+    },
+    "natGateway" : {
+      "Type" : "AWS::EC2::NatGateway",
+      "Properties" : {
+        "AllocationId" : { "Fn::GetAtt" : ["natEip", "AllocationId"]},
+        "SubnetId" : { "Ref" : "publicSubnet1" }
+      },
+      "DependsOn" : "internetGatewayAttachment"
+    },
+    "publicRouteTable" : {
+      "Type" : "AWS::EC2::RouteTable",
+      "Properties" : {
+        "VpcId" : { "Ref" : "vpc" },
+        "Tags" : [ { "Key" : "Name", "Value" : "Public" } ]
+      }
+    },
+    "publicRouteTableRoute" : {
+      "Type" : "AWS::EC2::Route",
+      "Properties" : {
+        "DestinationCidrBlock" : "0.0.0.0/0",
+        "GatewayId" : { "Ref" : "internetGateway" },
+        "RouteTableId" : { "Ref" : "publicRouteTable" }
+      }
+    },
+    "privateRouteTable" : {
+      "Type" : "AWS::EC2::RouteTable",
+      "Properties" : {
+        "VpcId" : { "Ref" : "vpc" },
+        "Tags" : [ { "Key" : "Name", "Value" : "Private" } ]
+      }
+    },
+    "privateRouteTableRoute" : {
+      "Type" : "AWS::EC2::Route",
+      "Properties" : {
+        "DestinationCidrBlock" : "0.0.0.0/0",
+        "NatGatewayId" : { "Ref" : "natGateway" },
+        "RouteTableId" : { "Ref" : "privateRouteTable" }
+      }
+    },
+    "publicSubnet1Association" : {
+       "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+       "Properties" : {
+          "RouteTableId" : { "Ref" : "publicRouteTable" },
+          "SubnetId" : { "Ref" : "publicSubnet1" }
+       }
+    },
+    "publicSubnet2Association" : {
+       "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+       "Properties" : {
+          "RouteTableId" : { "Ref" : "publicRouteTable" },
+          "SubnetId" : { "Ref" : "publicSubnet2" }
+       }
+    },
+    "privateSubnet1Association" : {
+       "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+       "Properties" : {
+          "RouteTableId" : { "Ref" : "privateRouteTable" },
+          "SubnetId" : { "Ref" : "privateSubnet1" }
+       }
+    },
+    "privateSubnet2Association" : {
+       "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+       "Properties" : {
+          "RouteTableId" : { "Ref" : "privateRouteTable" },
+          "SubnetId" : { "Ref" : "privateSubnet2" }
+       }
+    },
+    "rdsSecurityGroup" : {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "SecurityGroupIngress" : [
+          {
+            "ToPort" : { "Ref" : "rdsPort" },
+            "FromPort" : { "Ref" : "rdsPort" },
+            "IpProtocol" : "tcp",
+            "SourceSecurityGroupId" : { "Ref" : "ec2SecurityGroup" }
+          }
+        ],
+        "VpcId" : { "Ref" : "vpc" },
+        "GroupDescription" : "RDS Security Group",
+        "Tags" : [ { "Key" : "Name", "Value" : { "Ref" : "rdsIdentifier" } } ]
+      }
+    },
+    "rdsSubnetGroup" : {
+      "Type" : "AWS::RDS::DBSubnetGroup",
+      "Properties" : {
+        "SubnetIds" : [ { "Ref" : "privateSubnet1" }, { "Ref" : "privateSubnet2" } ],
+        "DBSubnetGroupDescription" : "CloudFormation RDS subnet group",
+        "Tags" : [ { "Key" : "Name", "Value" : { "Ref" : "rdsIdentifier" } } ]
+      }
+    },
+    "rdsInstance" : {
+      "Type" : "AWS::RDS::DBInstance",
+      "Properties" : {
+        "DBInstanceIdentifier" : { "Ref" : "rdsIdentifier" },
+        "DBInstanceClass" : { "Ref" : "rdsInstanceClass" },
+        "DBSubnetGroupName" : { "Ref" : "rdsSubnetGroup" },
+        "Engine" : { "Ref" : "rdsEngine" },
+        "EngineVersion" : { "Ref" : "rdsEngineVersion" },
+        "MasterUserPassword" : { "Ref" : "rdsPassword" },
+        "MasterUsername" : { "Ref" : "rdsUsername" },
+        "StorageType" : { "Ref" : "rdsStorageType" },
+        "AllocatedStorage" : { "Ref" : "rdsStorageSize" },
+        "VPCSecurityGroups" : [ { "Ref" : "rdsSecurityGroup" } ],
+        "Tags" : [ { "Key" : "Name", "Value" : { "Ref" : "rdsIdentifier" } } ]
+      }
+    },
+    "elbSecurityGroup" : {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "SecurityGroupIngress" : [ { "ToPort" : "80", "FromPort" : "80", "IpProtocol" : "tcp", "CidrIp" : "0.0.0.0/0" } ],
+        "VpcId" : { "Ref" : "vpc" },
+        "GroupDescription" : "ELB Security Group",
+        "Tags" : [ { "Key" : "Name", "Value" : "cloudformation-elb"} ]
+      }
+    },
+    "elbInstance" : {
+      "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Properties" : {
+        "LoadBalancerName" : "cloudformation-elb",
+        "Listeners" : [ { "InstancePort" : "80", "InstanceProtocol" : "HTTP", "LoadBalancerPort" : "80", "Protocol" : "HTTP" } ],
+        "SecurityGroups" : [ { "Ref" :  "elbSecurityGroup" } ],
+        "Subnets" : [ { "Ref" : "publicSubnet1" }, { "Ref" : "publicSubnet2" } ],
+        "Tags" :  [ { "Key" : "Name", "Value" : "cloudformation-elb" } ]
+      }
+    },
+    "ec2SecurityGroup" : {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "SecurityGroupIngress" : [
+          {
+            "ToPort" : "80",
+            "FromPort" : "80",
+            "IpProtocol" : "tcp",
+            "SourceSecurityGroupId" : { "Ref" : "elbSecurityGroup" }
+          }
+        ],
+        "VpcId" : { "Ref" : "vpc" },
+        "GroupDescription" : "Ec2 Security Group",
+        "Tags" : [ { "Key" : "Name", "Value" : "cloudformation-ec2" } ]
+      }
+    },
+    "launchConfiguration" : {
+      "Type" : "AWS::AutoScaling::LaunchConfiguration",
+      "Properties" : {
+         "ImageId" : { "Ref": "autoscalingGroupImageId" },
+         "InstanceType" : { "Ref" :  "autoscalingGroupInstanceType" },
+         "KeyName" :  { "Ref" :  "autoscalingGroupKeyname" },
+         "SecurityGroups" : [ { "Ref" :  "ec2SecurityGroup" } ],
+         "UserData" : {
+           "Fn::Base64" : {
+             "Fn::Join" : [
+               "\n",
+              [
+                "#!/bin/bash",
+                "set -euf -o pipefail",
+                "exec 1> >(logger -s -t $(basename $0)) 2>&1",
+                "yum -y install nginx; chkconfig nginx on; service nginx start"
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "autoScalingGroup" : {
+      "Type" : "AWS::AutoScaling::AutoScalingGroup",
+      "Properties" : {
+        "LaunchConfigurationName" : { "Ref" : "launchConfiguration" },
+        "DesiredCapacity" : "1",
+        "MinSize" : "1",
+        "MaxSize" : "1",
+        "LoadBalancerNames" : [ { "Ref" : "elbInstance" } ],
+        "VPCZoneIdentifier" : [ { "Ref" : "privateSubnet1" }, { "Ref" : "privateSubnet2" } ],
+        "Tags" : [ { "Key" : "Name", "Value" : "cloudformation-asg", "PropagateAtLaunch" : "true" } ]
+      },  
+      "DependsOn" : "rdsInstance"
+    }
+  },
+  "Outputs" : {
+    "vpcId" : {
+      "Description" : "VPC ID",
+      "Value" : { "Ref" : "vpc" }
+    },
+    "natEip" : {
+      "Description" : "NAT IP address",
+      "Value" : { "Ref" : "natEip" }
+    },
+    "elbDns" : {
+      "Description" : "ELB DNS",
+      "Value" : { "Fn::GetAtt" : [ "elbInstance", "DNSName" ] }
+    }
+  }
+}

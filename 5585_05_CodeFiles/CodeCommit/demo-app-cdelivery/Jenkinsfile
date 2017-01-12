@@ -1,0 +1,85 @@
+#!groovy
+
+node {
+
+  step([$class: 'WsCleanup'])
+
+  stage "Checkout Git repo"
+    checkout scm
+
+  stage "Checkout additional repos"
+    dir("salt") {
+      git "https://git-codecommit.us-east-1.amazonaws.com/v1/repos/salt"
+    }
+
+  stage "Run Packer"
+    sh "/opt/packer validate -var=\"appVersion=$APP_VERSION\" -var-file=packer/demo-app_vars.json packer/demo-app.json"
+    sh "/opt/packer build -machine-readable -var=\"appVersion=$APP_VERSION\" -var-file=packer/demo-app_vars.json packer/demo-app.json | tee packer/packer.log"
+
+  stage "Deploy AMI"
+    def amiId = sh returnStdout: true, script:"tail -n1 packer/packer.log | awk '{printf \$NF}'"
+    def ec2Keypair = "terraform"
+    def secGroup = "sg-81e628fb"
+    def instanceType = "t2.nano"
+    def subnetId = "subnet-83fdf4a9"
+    def instanceProfile = "demo-app"
+
+    echo "Launching an instance from ${amiId}"
+    sh "aws ec2 run-instances \
+        --region us-east-1 \
+        --image-id ${amiId} \
+        --key-name ${ec2Keypair} \
+        --security-group-ids ${secGroup} \
+        --instance-type ${instanceType} \
+        --subnet-id ${subnetId} \
+        --iam-instance-profile Name=${instanceProfile} \
+        | tee .ec2_run-instances.log \
+       "
+
+    def instanceId = sh returnStdout: true, script: "printf \$(jq .Instances[0].InstanceId < .ec2_run-instances.log)"
+
+    sh "aws ec2 create-tags --resources ${instanceId} \
+        --region us-east-1 \
+        --tags Key=Name,Value=\"Jenkins (demo-app-$APP_VERSION)\" Key=CreatedBy,Value=Jenkins \
+       "
+
+    echo "Registering with ELB"
+    def elbId = "demo-app-elb"
+    sh "aws elb register-instances-with-load-balancer \
+        --region us-east-1 \
+        --load-balancer-name ${elbId} \
+        --instances ${instanceId} \
+       "
+
+    echo "Waiting for the instance to come into service"
+    sh "while [ \"x\$(aws elb describe-instance-health --region us-east-1 --load-balancer-name ${elbId} --instances ${instanceId} | jq .InstanceStates[].State | tr -d '\"')\" != \"xInService\" ]; do : ; sleep 60; done"
+
+
+  stage "Run AB test"
+    def elbUri = "http://demo-app-elb-2073087633.us-east-1.elb.amazonaws.com/"  
+    sh "ab -c5 -n1000 -d -S ${elbUri} | tee .ab.log"
+    def non2xx = sh returnStdout: true, script:"set -o pipefail;(grep 'Non-2xx' .ab.log | awk '{printf \$NF}') || (printf 0)"
+    def writeErr = sh returnStdout: true, script:"grep 'Write errors' .ab.log | awk '{printf \$NF}'"
+    def failedReqs = sh returnStdout: true, script:"grep 'Failed requests' .ab.log | awk '{printf \$NF}'"
+    def rps = sh returnStdout: true, script:"grep 'Requests per second' .ab.log | awk '{printf \$4}' | awk -F. '{printf \$1}'"
+    def docLen = sh returnStdout: true, script:"grep 'Document Length' .ab.log | awk '{printf \$3}'"
+
+    echo "Non2xx=${non2xx}, WriteErrors=${writeErr}, FailedReqs=${failedReqs}, ReqsPerSec=${rps}, DocLength=${docLen}"
+    sh "if [ ${non2xx} -gt 10 ] || [ ${writeErr} -gt 10 ] || [ ${failedReqs} -gt 10 ] || [ ${rps} -lt 1000 ] || [ ${docLen} -lt 10 ]; then \
+          echo \"ERR: AB test failed\" | tee -a .error.log; \
+        fi \
+       "
+
+  stage "Terminate test instance"
+    sh "aws ec2 terminate-instances --region us-east-1 --instance-ids ${instanceId}"
+
+  stage "Verify test results"
+    sh "if [ -s '.error.log' ]; then \
+          cat '.error.log'; \
+          :> '.error.log'; \
+          exit 100; \
+        else \
+          echo 'Tests OK'; \
+        fi \
+       "
+}

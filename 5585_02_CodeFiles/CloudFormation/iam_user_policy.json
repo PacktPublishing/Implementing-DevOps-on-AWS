@@ -1,0 +1,56 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "cloudformation:CancelUpdateStack",
+                "cloudformation:ContinueUpdateRollback",
+                "cloudformation:Create*",
+                "cloudformation:Describe*",
+                "cloudformation:EstimateTemplateCost",
+                "cloudformation:ExecuteChangeSet",
+                "cloudformation:Get*",
+                "cloudformation:List*",
+                "cloudformation:PreviewStackUpdate",
+                "cloudformation:SetStackPolicy",
+                "cloudformation:SignalResource",
+                "cloudformation:UpdateStack",
+                "cloudformation:ValidateTemplate",
+                "autoscaling:CreateAutoScalingGroup",
+                "autoscaling:CreateLaunchConfiguration",
+                "autoscaling:DeleteLaunchConfiguration",
+                "autoscaling:Describe*",
+                "autoscaling:UpdateAutoScalingGroup",
+                "ec2:AllocateAddress",
+                "ec2:AssociateAddress",
+                "ec2:AssociateRouteTable",
+                "ec2:AttachInternetGateway",
+                "ec2:AuthorizeSecurityGroupEgress",
+                "ec2:AuthorizeSecurityGroupIngress",
+                "ec2:CreateInternetGateway",
+                "ec2:CreateNatGateway",
+                "ec2:CreateRoute",
+                "ec2:CreateRouteTable",
+                "ec2:CreateSecurityGroup",
+                "ec2:CreateSubnet",
+                "ec2:CreateTags",
+                "ec2:CreateVpc",
+                "ec2:Describe*",
+                "ec2:Modify*",
+                "ec2:RevokeSecurityGroupEgress",
+                "elasticloadbalancing:CreateLoadBalancer",
+                "elasticloadbalancing:CreateLoadBalancerListeners",
+                "elasticloadbalancing:Describe*",
+                "elasticloadbalancing:ModifyLoadBalancerAttributes",
+                "elasticloadbalancing:SetLoadBalancerPoliciesOfListener",
+                "rds:CreateDBInstance",
+                "rds:CreateDBSubnetGroup",
+                "rds:Describe*"
+            ],
+            "Resource": [
+                "*"
+            ]
+        }
+    ]
+}

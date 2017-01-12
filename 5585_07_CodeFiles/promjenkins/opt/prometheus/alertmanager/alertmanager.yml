@@ -1,0 +1,26 @@
+global:
+  smtp_smarthost: 'localhost:25'
+  smtp_from: 'alertmanager@example.org'
+
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 1h 
+  receiver: team-X-mails
+
+  routes:
+  - receiver: 'jenkins-webhook'
+    match:
+      alertname: "High_disk_space_usage"
+
+receivers:
+- name: 'team-X-mails'
+  email_configs:
+  - to: 'team-X+alerts@example.org'
+    require_tls: false
+    send_resolved: true
+
+- name: 'jenkins-webhook'
+  webhook_configs:
+  - url: http://localhost:8888

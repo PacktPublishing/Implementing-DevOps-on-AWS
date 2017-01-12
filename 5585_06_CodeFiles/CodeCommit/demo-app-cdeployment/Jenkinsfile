@@ -1,0 +1,13 @@
+#!groovy
+
+node {
+  
+  step([$class: 'WsCleanup'])
+
+  stage "Checkout Git repo"
+    checkout scm
+
+  stage "Deploy AMI"
+   sh returnStdout: false, script: "bash ./cdeployment.sh ${AMI_ID}"
+
+}

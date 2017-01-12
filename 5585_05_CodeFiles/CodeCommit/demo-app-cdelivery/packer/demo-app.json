@@ -1,0 +1,63 @@
+{
+  "variables": {
+    "srcAmiId": null,
+    "amiName": null,
+    "sshUser": null,
+    "instanceProfile": null,
+    "subnetId": null,
+    "vpcId": null,
+    "userDataFile": null,
+    "appVersion": null
+  },
+  "builders": [{
+    "type": "amazon-ebs",
+    "region": "us-east-1",
+    "source_ami": "{{user `srcAmiId`}}",
+    "instance_type": "t2.nano",
+    "ssh_username": "{{user `sshUser`}}",
+    "ami_name": "{{user `amiName`}}-{{timestamp}}",
+    "iam_instance_profile": "{{user `instanceProfile`}}",
+    "subnet_id": "{{user `subnetId`}}",
+    "vpc_id": "{{user `vpcId`}}",
+    "user_data_file": "{{user `userDataFile`}}",
+    "run_tags": {
+      "Name": "Packer ({{user `amiName`}}-{{timestamp}})",
+      "CreatedBy": "Jenkins"
+      },
+    "tags": {
+      "Name": "{{user `amiName`}}-{{timestamp}}",
+      "CreatedBy": "Jenkins"
+      }
+  }],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [ 
+        "echo 'Waiting for the instance to fully boot up...'",
+        "sleep 30" ,
+        "echo \"Setting APP_VERSION to {{user `appVersion`}}\"",
+        "echo \"{{user `appVersion`}}\" > /tmp/APP_VERSION"
+        ]
+    },
+    {
+      "type": "salt-masterless",
+      "skip_bootstrap": true,
+      "local_state_tree": "salt/states",
+      "local_pillar_roots": "salt/pillars"
+    },
+    {
+      "type": "file",
+      "source": "serverspec",
+      "destination": "/tmp/"
+    },
+    {
+      "type": "shell",
+      "inline": [ 
+        "echo 'Installing Serverspec tests...'",
+        "sudo gem install --no-document rake serverspec",
+        "echo 'Running Serverspec tests...'",
+        "cd /tmp/serverspec && sudo /usr/local/bin/rake spec"
+        ]
+    }
+  ]
+}

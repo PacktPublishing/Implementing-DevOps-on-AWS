@@ -1,0 +1,7 @@
+ALERT High_disk_space_usage
+  IF disk_used_percent > 20
+  FOR 1m
+  ANNOTATIONS {
+    summary = "High disk space usage on {{ $labels.instance }}",
+    description = "{{ $labels.instance }} has a disk_used value of {{ $value }}% on {{ $labels.path }})",
+  }

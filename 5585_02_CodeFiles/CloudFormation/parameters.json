@@ -1,0 +1,78 @@
+[
+  {
+    "ParameterKey": "vpcCidr",
+    "ParameterValue": "10.0.0.0/16"
+  },
+  {
+    "ParameterKey": "vpcName",
+    "ParameterValue": "CloudFormation"
+  },
+  {
+    "ParameterKey": "awsAvailabilityZones",
+    "ParameterValue": "us-east-1b,us-east-1c" 
+  },
+  {
+    "ParameterKey": "publicCidr",
+    "ParameterValue": "10.0.1.0/24,10.0.3.0/24"
+  },
+  {
+    "ParameterKey": "privateCidr",
+    "ParameterValue": "10.0.2.0/24,10.0.4.0/24"
+  },
+  {
+    "ParameterKey": "rdsIdentifier",
+    "ParameterValue": "cloudformation"
+  },
+  {
+    "ParameterKey": "rdsStorageSize",
+    "ParameterValue": "5"
+  },
+  {
+    "ParameterKey": "rdsStorageType",
+    "ParameterValue": "gp2"
+  },
+  {
+    "ParameterKey": "rdsEngine",
+    "ParameterValue": "postgres"
+  },
+  {
+    "ParameterKey": "rdsEngineVersion",
+    "ParameterValue": "9.5.2"
+  },
+  {
+    "ParameterKey": "rdsInstanceClass",
+    "ParameterValue": "db.t2.micro"
+  },
+  {
+    "ParameterKey": "rdsUsername",
+    "ParameterValue": "root"
+  },
+  {
+    "ParameterKey": "rdsPassword",
+    "ParameterValue": "YouShouldChangeThisHerePassword"
+  },
+  {
+    "ParameterKey": "rdsPort",
+    "ParameterValue": "5432"
+  },
+  {
+    "ParameterKey": "autoscalingGroupMinsize",
+    "ParameterValue": "1"
+  },
+  {
+    "ParameterKey": "autoscalingGroupMaxsize",
+    "ParameterValue": "1"
+  },
+  {
+    "ParameterKey": "autoscalingGroupInstanceType",
+    "ParameterValue": "t2.nano"
+  },
+  {
+    "ParameterKey": "autoscalingGroupKeyname",
+    "ParameterValue": "cloudformation"
+  },
+  {
+    "ParameterKey": "autoscalingGroupImageId",
+    "ParameterValue": "ami-08111162"
+  }
+]
