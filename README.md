@@ -11,8 +11,7 @@ The code will look like the following:
        aws-availability-zones = "us-east-1b,us-east-1c"
 
 ### Software requirements:
-  ####The practical examples found in this book involve the use of AWS resources, thus an AWS
-      account would be required.
+The practical examples found in this book involve the use of AWS resources, thus an AWS account would be required.
        
        * CloudFormation         : https://aws.amazon.com/cloudformation/
        * Terraform              : https://www.terraform.io/
