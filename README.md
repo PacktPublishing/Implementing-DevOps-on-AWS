@@ -22,7 +22,7 @@ The practical examples found in this book involve the use of AWS resources, thus
        * Packer                 : https://www.packer.io/
        * Serverspec             : http://serverspec.org/
        * Elasticsearch          : https://www.elastic.co/ 
-       *Kibana                  : https://www.elastic.co/
+       * Kibana                  : https://www.elastic.co/
        * Logstash               : https://www.elastic.co/
        * Prometheus             : https://prometheus.io/ 
        
