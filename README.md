@@ -27,7 +27,7 @@ supported on most common operating systems (Linux/Windows/Mac OS).
 
 Here is the list of softwares used in the book:
        
-       * [CloudFormation] (https://aws.amazon.com/cloudformation/)
+       * CloudFormation         - https://aws.amazon.com/cloudformation/
        * Terraform              - https://www.terraform.io/
        * SaltStack              - https://saltstack.com/community/
        * Jenkins CI             - https://jenkins.io
