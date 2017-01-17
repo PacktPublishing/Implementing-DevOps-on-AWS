@@ -27,18 +27,18 @@ supported on most common operating systems (Linux/Windows/Mac OS).
 
 Here is the list of softwares used in the book:
        
-      - ** CloudFormation         : https://aws.amazon.com/cloudformation/
-      - ** Terraform              : https://www.terraform.io/
-      - ** SaltStack              : https://saltstack.com/community/
-      - ** Jenkins CI             : https://jenkins.io
-      - ** Docker                 : https://www.docker.com/
-      - ** FPM                    : https://github.com/jordansissel/fpm
-      - ** Packer                 : https://www.packer.io/
-      - ** Serverspec             : http://serverspec.org/
-      - ** Elasticsearch          : https://www.elastic.co/ 
-      - ** Kibana                  : https://www.elastic.co/
-      - ** Logstash               : https://www.elastic.co/
-      - ** Prometheus             : https://prometheus.io/ 
+      - ** CloudFormation**         : https://aws.amazon.com/cloudformation/
+      - ** Terraform**              : https://www.terraform.io/
+      - ** SaltStack**              : https://saltstack.com/community/
+      - ** Jenkins CI**             : https://jenkins.io
+      - ** Docker**                 : https://www.docker.com/
+      - ** FPM**                    : https://github.com/jordansissel/fpm
+      - ** Packer**                 : https://www.packer.io/
+      - ** Serverspec**             : http://serverspec.org/
+      - ** Elasticsearch**          : https://www.elastic.co/ 
+      - ** Kibana**                  : https://www.elastic.co/
+      - ** Logstash**               : https://www.elastic.co/
+      - ** Prometheus**             : https://prometheus.io/ 
        
 ## Related Products:
 
