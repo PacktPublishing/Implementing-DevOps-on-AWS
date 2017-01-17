@@ -48,8 +48,6 @@ Here is the list of softwares used in the book:
 
 * [Learning AWS Lumberyard Game Development]( https://www.packtpub.com/game-development/learning-aws-lumberyard-game-development?utm_source=github&utm_medium=repository&utm_content=9781786460868 )
 
-* [Learning AWS Lumberyard Game Development]( https://www.packtpub.com/game-development/learning-aws-lumberyard-game-development?utm_source=github&utm_medium=repository&utm_content=9781786460868 )
-
 * [Amazon S3 Essentials]( https://www.packtpub.com/virtualization-and-cloud/amazon-s3-essentials?utm_source=github&utm_medium=repository&utm_content=9781783554898 )
 
 ###Suggestions and Feedback
