@@ -1,5 +1,13 @@
 # Implementing DevOps on AWS
 This is the code repository for [Implementing DevOps on AWS](https://www.packtpub.com/virtualization-and-cloud/implementing-devops-aws?utm_source=github&utm_medium=repository&utm_content=9781786460141), published by Packt. It contains all the supporting project files necessary to work through the book from start to finish.
+
+There are no code files for the following chapters:
+
+- **Chapter 1**  - What is DevOps and Should You Care?
+- **Chapter 8**  - Optimize for Scale and Cost
+- **Chapter 9**  - Secure Your AWS Environment
+- **Chapter 10** - Aws Tips and Tricks
+
 ## Instructions and Navigations
 All of the code is organized into folders. Each folder starts with a number followed by the application name. For example, 5585_02_CodeFiles
 
