@@ -1,7 +1,8 @@
 # Implementing DevOps on AWS
 This is the code repository for [Implementing DevOps on AWS](https://www.packtpub.com/virtualization-and-cloud/implementing-devops-aws?utm_source=github&utm_medium=repository&utm_content=9781786460141), published by Packt. It contains all the supporting project files necessary to work through the book from start to finish.
 
-
+## About the Book
+This book will help you to drastically reduce the amount of time spent on development and increase the reliability of your software deployments on AWS using popular DevOps methods of automation.
 
 ## Instructions and Navigations
 All of the code is organized into folders. Each folder starts with a number followed by the application name. For example, Chapter 2
