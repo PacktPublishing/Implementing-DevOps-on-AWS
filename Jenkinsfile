@@ -5,7 +5,7 @@ node {
   stage "Checkout Git repo"
     checkout scm
   stage "Run tests"
-    sh "docker run -v \$(pwd):/app --rm phpunit/phpunit tests/"
+    sh "docker run -v \${WORKSPACE}:/app --rm phpunit/phpunit tests/"
   stage "Build RPM"
     sh "[ -d ./rpm ] || mkdir ./rpm"
     sh "docker run -v \$(pwd)/src:/data/demo-app -v \$(pwd)/rpm:/data/rpm --rm tenzer/fpm fpm -s dir -t rpm -n demo-app -v \$(git rev-parse --short HEAD) --description \"Demo PHP app\" --directories /var/www/demo-app --package /data/rpm/demo-app-\$(git rev-parse --short HEAD).rpm /data/demo-app=/var/www/"
