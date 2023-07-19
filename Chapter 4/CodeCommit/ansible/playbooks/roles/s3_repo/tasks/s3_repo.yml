@@ -1,0 +1,16 @@
+- name: Configure S3 Bucket as Package Repository
+  hosts: ec2_instance
+  become: true
+  tasks:
+    - name: Install AWS CLI
+      apt:
+        name: awscli
+        state: present
+
+    - name: Configure AWS credentials
+      template:
+        src: aws-credentials.j2
+        dest: /home/{{ ansible_user }}/.aws/credentials
+
+    - name: Configure AWS CLI with S3 bucket as package repository
+      shell: aws s3 sync s3://your-bucket/packages /var/www/html/packages

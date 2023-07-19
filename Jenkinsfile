@@ -1,20 +1,50 @@
 #!groovy
-
-node {
-
-  stage "Checkout Git repo"
-    checkout scm
-  stage "Run tests"
-    sh "docker run -v \${WORKSPACE}:/app --rm phpunit/phpunit tests/"
-  stage "Build RPM"
-    sh "[ -d ./rpm ] || mkdir ./rpm"
-    sh "docker run -v \$(pwd)/src:/data/demo-app -v \$(pwd)/rpm:/data/rpm --rm tenzer/fpm fpm -s dir -t rpm -n demo-app -v \$(git rev-parse --short HEAD) --description \"Demo PHP app\" --directories /var/www/demo-app --package /data/rpm/demo-app-\$(git rev-parse --short HEAD).rpm /data/demo-app=/var/www/"
-  stage "Update YUM repo"
-    sh "[ -d ~/repo/rpm/demo-app/ ] || mkdir -p ~/repo/rpm/demo-app/"
-    sh "mv ./rpm/*.rpm ~/repo/rpm/demo-app/"
-    sh "createrepo ~/repo/"
-    sh "aws s3 sync ~/repo s3://jain94909409404/ --region us-east-1 --delete"
-  stage "Check YUM repo"
-    sh "yum clean all"
-    sh "yum info demo-app-\$(git rev-parse --short HEAD)"
+pipeline {
+  agent {
+    docker {
+      image 'docker'
+    }
+  }
+  
+  stages {
+    stage('Check for Latest Commit') {
+      steps {
+        script {
+          def latestCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+          def hasLatestCommit = false
+          
+          // Check if there is a newer commit in the Git repository
+          if (latestCommit != sh(script: 'git rev-parse origin/master', returnStdout: true).trim()) {
+            hasLatestCommit = true
+          }
+          
+          // Proceed to the next stage if there is a latest commit
+          if (hasLatestCommit) {
+            checkout scm
+          } else {
+            echo 'No latest commit. Skipping the next stage.'
+            currentBuild.result = 'SUCCESS'
+            return
+          }
+        }
+      }
+    }
+    
+    stage('Terraform Apply') {
+      steps {
+        sh 'terraform init'
+        sh 'terraform apply -auto-approve'
+      }
+    }
+    
+    stage('Install Jenkins and Nginx') {
+      steps {
+        ansiblePlaybook(
+          playbook: 'path/to/ansible/playbook.yml',
+          inventory: 'path/to/ansible/inventory.ini',
+          
+        )
+      }
+    }
+  }
 }
